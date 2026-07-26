@@ -7,5 +7,17 @@
   "stylelint.validate": ["css", "postcss"],
   "stylelint.workingDirectories": [
     "my-test-app"
-  ]
+  ],
+  "[javascript]": {
+    "editor.defaultFormatter": "biome.biome"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "biome.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biome.biome"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biome.biome"
+  }
 }
