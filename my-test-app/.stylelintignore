@@ -1,0 +1,8 @@
+# Ignore all files by default
+*
+
+# Do not ignore directories so Stylelint can traverse them
+!**/
+
+# Do not ignore CSS files
+!**/*.css
