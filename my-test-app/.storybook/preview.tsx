@@ -1,4 +1,5 @@
 import type { Preview } from "@storybook/react-vite";
+import addonMsw from "msw-storybook-addon";
 
 const preview: Preview = {
   parameters: {
@@ -16,6 +17,7 @@ const preview: Preview = {
       test: "todo",
     },
   },
+  addons: [addonMsw()],
 };
 
 export default preview;
