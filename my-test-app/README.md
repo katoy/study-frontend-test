@@ -68,6 +68,8 @@ flowchart TD
   - Vite/React 公式リソースへのクイックアクセスや、Discord/Bluesky などのソーシャルメディアコミュニティへのリンク。
 - **厳格な品質管理ツールチェーン**
   - ESLint、Stylelint、Prettier、さらに Rust 製の超高速リンター・フォーマッターである **Biome** を統合し、コードの品質と一貫性を自動的に担保します。
+- **カスタムフックのテスト環境 (renderHook)**
+  - `@testing-library/react` に統合されている `renderHook` および `act` を用いて、コンポーネントを介さずにカスタムフックを直接テストできます。
 
 ---
 
@@ -176,6 +178,9 @@ my-test-app/
 │   │   ├── [hero.png](file:///Users/katoy/github/study-frontend-test/my-test-app/src/assets/hero.png)   # メインのヒーロー画像
 │   │   ├── [react.svg](file:///Users/katoy/github/study-frontend-test/my-test-app/src/assets/react.svg) # React ロゴ SVG
 │   │   └── [vite.svg](file:///Users/katoy/github/study-frontend-test/my-test-app/src/assets/vite.svg)   # Vite ロゴ SVG
+│   ├── [hooks/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/hooks)        # カスタムフック
+│   │   ├── [useCounter.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/hooks/useCounter.ts) # カウンターロジックのカスタムフック
+│   │   └── [useCounter.test.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/hooks/useCounter.test.ts) # カスタムフックのユニットテスト
 │   ├── [test/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test)          # テスト用設定
 │   │   └── [setup.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test/setup.ts) # テスト共通セットアップ (jest-dom設定など)
 │   ├── [App.css](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.css)       # Appコンポーネント専用CSS
