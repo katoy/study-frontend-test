@@ -16,6 +16,7 @@ React v19、TypeScript、Vite v8 を使用したモダンなフロントエン�
 - [環境要件・技術スタック](#環境要件技術スタック)
 - [デプロイ方針](#デプロイ方針)
 - [CI/CD パイプライン](#cicd-パイプライン)
+- [Storybook & TurboSnap](#storybook--turbosnap)
 - [インストール・セットアップ](#インストールセットアップ)
 - [主要コマンド](#主要コマンド)
 - [ディレクトリ構造](#ディレクトリ構造)
@@ -73,6 +74,10 @@ flowchart TD
   - ESLint、Stylelint、Prettier、さらに Rust 製の超高速リンター・フォーマッターである **Biome** を統合し、コードの品質と一貫性を自動的に担保します。
 - **カスタムフックのテスト環境 (renderHook)**
   - `@testing-library/react` に統合されている `renderHook` および `act` を用いて、コンポーネントを介さずにカスタムフックを直接テストできます。
+- **Storybook コンポーネントカタログ & テスト (Vitest Integration)**
+  - UI コンポーネントを隔離環境で開発し、Storybook のストーリー（Stories）をそのまま Vitest のテストとしてブラウザ上でテスト実行できます。
+- **TurboSnap による高速なビジュアルテスト準備**
+  - Viteビルド時に Git 変更差分に基づいた依存関係グラフ `preview-stats.json` を出力し、Chromatic等での不要なスナップショットテストを自動スキップできます。
 
 ---
 
@@ -97,6 +102,8 @@ flowchart TD
 | **jest-dom**   | ^6.9.1     | テスト用カスタムマッチャー（DOMアサーションの拡張）        |
 | **user-event** | ^14.6.1    | ブラウザ上のユーザー操作（クリック・入力など）のシミュレート|
 | **Playwright** | ^1.62.0    | E2Eテストフレームワーク（マルチブラウザ対応）              |
+| **Storybook**  | ^10.5.4    | UIコンポーネントの開発・検証用の独立環境カタログ           |
+| **TurboSnap**  | ^1.0.3     | 差分検知によるChromaticスナップショットテスト削減プラグイン|
 | **ESLint**     | ^10.6.0    | JavaScript/TypeScript 静的解析                             |
 | **Stylelint**  | ^17.14.1   | CSS 静的解析                                               |
 | **Prettier**   | ^3.9.6     | コードフォーマッター                                       |
@@ -116,11 +123,21 @@ Vite のビルドによって生成される `dist/` ディレクトリの静的
 GitHub Actions を利用した自動検証・自動デプロイフローを導入しています。
 
 1. **デプロイフロー (`deploy.yml`)**
-   - **契機**: `main` ブランチへのプッシュ
+   - **契機**: `main` ブランクへのプッシュ
    - **処理**: 依存関係インストール、Biomeによるコードチェック、単体テスト（Vitest）実行、ビルド、GitHub Pagesへの直接デプロイ。
 2. **E2Eテストフロー (`playwright.yml`)**
-   - **契機**: `main`/`master` ブランチへのプッシュ、およびプルリクエスト作成時
+   - **契機**: `main`/`master` ブランクへのプッシュ、およびプルリクエスト作成時
    - **処理**: Playwrightによるマルチブラウザ（Chromium, Firefox, WebKit）E2Eテストの実行。テスト失敗時はテストレポート（HTML）を GitHub Actions の Artifacts として自動保存（30日間保持）。
+
+---
+
+## Storybook & TurboSnap
+
+コンポーネント駆動開発（Component-Driven Development）をサポートするために Storybook を導入しています。
+
+### 特徴
+- **Vitest統合型テスト**: Storybook v8/v10 の `@storybook/addon-vitest` を用いて、コンポーネントストーリーを Vitest 上でそのままユニットテストとして動作させます（Playwrightブラウザプロバイダーを使用）。
+- **TurboSnapによる効率化**: `vite-plugin-turbosnap` がビルド時に Git のファイル差分から影響を受けるストーリーを分析し、依存関係ファイルである `preview-stats.json` を生成します。これを Chromatic 等のビジュアルテストツールと連携させることで、無駄なテスト実行数（スナップショットコスト）を大幅に削減します。
 
 ---
 
@@ -185,6 +202,12 @@ npm run test:e2e
 
 # PlaywrightのインタラクティブUIモードでの実行
 npm run test:e2e:ui
+
+# Storybook 開発サーバーの起動
+npm run storybook
+
+# Storybook の静的ビルド (TurboSnap 依存グラフ作成含む)
+npm run build-storybook
 ```
 
 ---
@@ -206,6 +229,10 @@ my-test-app/
 │   ├── [hooks/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/hooks)        # カスタムフック
 │   │   ├── [useCounter.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/hooks/useCounter.ts) # カウンターロジックのカスタムフック
 │   │   └── [useCounter.test.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/hooks/useCounter.test.ts) # カスタムフックのユニットテスト
+│   ├── [stories/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/stories)      # Storybook コンポーネント & ストーリーファイル
+│   │   ├── [Button.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/stories/Button.tsx)       # ボタンコンポーネント本体
+│   │   ├── [Button.stories.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/stories/Button.stories.ts) # ボタンのストーリー定義 (テスト兼)
+│   │   └── ... (Header, Page などのサンプルストーリー群)
 │   ├── [test/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test)          # テスト用設定
 │   │   └── [setup.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test/setup.ts) # テスト共通セットアップ (jest-dom設定など)
 │   ├── [App.css](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.css)       # Appコンポーネント専用CSS
@@ -213,6 +240,9 @@ my-test-app/
 │   ├── [App.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.tsx)       # メインコンポーネント (カウンターとリンク)
 │   ├── [index.css](file:///Users/katoy/github/study-frontend-test/my-test-app/src/index.css)     # グローバルCSS (共通スタイル、リセット)
 │   └── [main.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/main.tsx)      # エントリポイント (Reactレンダリング開始)
+├── [.storybook/](file:///Users/katoy/github/study-frontend-test/my-test-app/.storybook)      # Storybook の設定フォルダ
+│   ├── [main.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/.storybook/main.ts)       # メイン設定（アドオン、Vite統合など）
+│   └── [preview.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/.storybook/preview.ts)   # レンダリング時の共通設定
 ├── [tests/](file:///Users/katoy/github/study-frontend-test/my-test-app/tests)            # Playwright E2Eテストコード
 │   ├── [app.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/app.spec.ts) # アプリ固有のE2Eテスト
 │   └── [example.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/example.spec.ts) # Playwright公式のE2Eテストサンプル
@@ -254,6 +284,7 @@ my-test-app/
 | **Biome**     | 高速ルールチェック・自動整形     | 警告ゼロ               | **PASS**       |
 | **Vitest**    | ユニットテスト・結合テスト       | カバレッジ確保・バグ防ぐ | **PASS**       |
 | **Playwright**| E2Eテスト (マルチブラウザ対応)   | 複数環境での表示・動作担保| **PASS**       |
+| **Storybook** | コンポーネント単位のテスト実行   | 各UI状態の挙動確認・検証 | **PASS**       |
 
 ---
 

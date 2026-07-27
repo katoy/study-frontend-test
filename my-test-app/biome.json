@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!!**/dist", "!!**/*.css", "!!public"]
+    "includes": ["**", "!!**/dist", "!!**/*.css", "!!public", "!!src/stories"]
   },
   "formatter": {
     "enabled": true,
