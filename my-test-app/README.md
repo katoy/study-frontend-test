@@ -1,5 +1,7 @@
 # my-test-app (study-frontend-test)
 
+[![CI/CD to GitHub Pages](https://github.com/katoy/study-frontend-test/actions/workflows/deploy.yml/badge.svg)](https://github.com/katoy/study-frontend-test/actions/workflows/deploy.yml)
+
 React v19、TypeScript、Vite v8 を使用したモダンなフロントエンド学習・テスト用アプリケーションです。
 
 🚀 **デプロイ先 (GitHub Pages):** [https://katoy.github.io/study-frontend-test/my-test-app/](https://katoy.github.io/study-frontend-test/my-test-app/)

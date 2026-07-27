@@ -3,6 +3,7 @@ import { defineConfig } from "vitest/config";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/study-frontend-test/my-test-app/",
   plugins: [react()],
   test: {
     globals: true,
