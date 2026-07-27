@@ -95,6 +95,7 @@ flowchart TD
 | **Testing Library (React)** | ^16.3.2 | Reactコンポーネントのテスト用ユーティリティ              |
 | **jest-dom**   | ^6.9.1     | テスト用カスタムマッチャー（DOMアサーションの拡張）        |
 | **user-event** | ^14.6.1    | ブラウザ上のユーザー操作（クリック・入力など）のシミュレート|
+| **Playwright** | ^1.62.0    | E2Eテストフレームワーク（マルチブラウザ対応）              |
 | **ESLint**     | ^10.6.0    | JavaScript/TypeScript 静的解析                             |
 | **Stylelint**  | ^17.14.1   | CSS 静的解析                                               |
 | **Prettier**   | ^3.9.6     | コードフォーマッター                                       |
@@ -164,6 +165,12 @@ npm run test
 
 # テストの実行 (シングルラン)
 npm run test:run
+
+# PlaywrightによるE2Eテストの実行 (ヘッドレス)
+npm run test:e2e
+
+# PlaywrightのインタラクティブUIモードでの実行
+npm run test:e2e:ui
 ```
 
 ---
@@ -192,10 +199,14 @@ my-test-app/
 │   ├── [App.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.tsx)       # メインコンポーネント (カウンターとリンク)
 │   ├── [index.css](file:///Users/katoy/github/study-frontend-test/my-test-app/src/index.css)     # グローバルCSS (共通スタイル、リセット)
 │   └── [main.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/main.tsx)      # エントリポイント (Reactレンダリング開始)
+├── [tests/](file:///Users/katoy/github/study-frontend-test/my-test-app/tests)            # Playwright E2Eテストコード
+│   ├── [app.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/app.spec.ts) # アプリ固有のE2Eテスト
+│   └── [example.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/example.spec.ts) # Playwright公式のE2Eテストサンプル
 ├── [biome.json](file:///Users/katoy/github/study-frontend-test/my-test-app/biome.json)        # Biome のルール・動作設定ファイル
 ├── [eslint.config.js](file:///Users/katoy/github/study-frontend-test/my-test-app/eslint.config.js)  # ESLint 設定ファイル
 ├── [index.html](file:///Users/katoy/github/study-frontend-test/my-test-app/index.html)        # メイン HTML テンプレート
 ├── [package.json](file:///Users/katoy/github/study-frontend-test/my-test-app/package.json)      # プロジェクト依存関係およびスクリプト定義
+├── [playwright.config.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/playwright.config.ts) # Playwright設定ファイル
 ├── [tsconfig.json](file:///Users/katoy/github/study-frontend-test/my-test-app/tsconfig.json)     # TypeScript ルート設定
 ├── [vite.config.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/vite.config.ts)   # Vite 設定
 └── [README.md](file:///Users/katoy/github/study-frontend-test/my-test-app/README.md)        # 本ドキュメント
@@ -228,6 +239,7 @@ my-test-app/
 | **Prettier**  | コード全体の自動整形フォーマット | 一貫したコードスタイル | **PASS**       |
 | **Biome**     | 高速ルールチェック・自動整形     | 警告ゼロ               | **PASS**       |
 | **Vitest**    | ユニットテスト・結合テスト       | カバレッジ確保・バグ防ぐ | **PASS**       |
+| **Playwright**| E2Eテスト (マルチブラウザ対応)   | 複数環境での表示・動作担保| **PASS**       |
 
 ---
 
