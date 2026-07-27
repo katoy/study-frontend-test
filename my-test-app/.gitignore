@@ -32,3 +32,12 @@ dist-ssr
 
 *storybook.log
 storybook-static
+
+# Local env files
+.env*.local
+
+# Caches
+.eslintcache
+.stylelintcache
+.vitest/
+.biome/
