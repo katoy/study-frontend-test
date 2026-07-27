@@ -87,6 +87,7 @@ flowchart TD
 | **TypeScript** | ~6.0.2     | 静的型定義                                                 |
 | **Vite**       | ^8.1.1     | ビルドツール・開発サーバー                                 |
 | **Vitest**     | ^4.1.10    | テストランナー・テストフレームワーク                       |
+| **jsdom**      | ^29.1.1    | テスト用のブラウザ環境（DOM環境）エミュレーター            |
 | **Testing Library** | (設定あり) | ReactコンポーネントおよびDOMの単体テスト                 |
 | **ESLint**     | ^10.6.0    | JavaScript/TypeScript 静的解析                             |
 | **Stylelint**  | ^17.14.1   | CSS 静的解析                                               |
