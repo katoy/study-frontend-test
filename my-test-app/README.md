@@ -17,6 +17,7 @@ React v19、TypeScript、Vite v8 を使用したモダンなフロントエン�
 - [デプロイ方針](#デプロイ方針)
 - [CI/CD パイプライン](#cicd-パイプライン)
 - [Storybook & TurboSnap](#storybook--turbosnap)
+- [MSW (Mock Service Worker)](#msw-mock-service-worker)
 - [インストール・セットアップ](#インストールセットアップ)
 - [主要コマンド](#主要コマンド)
 - [ディレクトリ構造](#ディレクトリ構造)
@@ -78,6 +79,8 @@ flowchart TD
   - UI コンポーネントを隔離環境で開発し、Storybook のストーリー（Stories）をそのまま Vitest のテストとしてブラウザ上でテスト実行できます。
 - **TurboSnap による高速なビジュアルテスト準備**
   - Viteビルド時に Git 変更差分に基づいた依存関係グラフ `preview-stats.json` を出力し、Chromatic等での不要なスナップショットテストを自動スキップできます。
+- **MSW (Mock Service Worker) による API モック環境**
+  - ネットワークリクエストを Service Worker レベルでインターセプトし、テスト（Vitest）やカタログ表示（Storybook）において一貫したモック API レスポンスを提供します。
 
 ---
 
@@ -104,6 +107,8 @@ flowchart TD
 | **Playwright** | ^1.62.0    | E2Eテストフレームワーク（マルチブラウザ対応）              |
 | **Storybook**  | ^10.5.4    | UIコンポーネントの開発・検証用の独立環境カタログ           |
 | **TurboSnap**  | ^1.0.3     | 差分検知によるChromaticスナップショットテスト削減プラグイン|
+| **MSW**        | ^2.15.0    | APIモックライブラリ（Service Workerによるリクエスト制御）   |
+| **msw-storybook-addon** | ^3.0.0 | Storybook向けのMSW連携アドオン                          |
 | **ESLint**     | ^10.6.0    | JavaScript/TypeScript 静的解析                             |
 | **Stylelint**  | ^17.14.1   | CSS 静的解析                                               |
 | **Prettier**   | ^3.9.6     | コードフォーマッター                                       |
@@ -138,6 +143,17 @@ GitHub Actions を利用した自動検証・自動デプロイフローを導�
 ### 特徴
 - **Vitest統合型テスト**: Storybook v8/v10 の `@storybook/addon-vitest` を用いて、コンポーネントストーリーを Vitest 上でそのままユニットテストとして動作させます（Playwrightブラウザプロバイダーを使用）。
 - **TurboSnapによる効率化**: `vite-plugin-turbosnap` がビルド時に Git のファイル差分から影響を受けるストーリーを分析し、依存関係ファイルである `preview-stats.json` を生成します。これを Chromatic 等のビジュアルテストツールと連携させることで、無駄なテスト実行数（スナップショットコスト）を大幅に削減します。
+
+---
+
+## MSW (Mock Service Worker)
+
+API リクエストをモックし、バックエンドから独立したフロントエンド開発・テストを行うために MSW を導入しています。
+
+### 特徴
+- **Service Worker によるインターセプト**: ブラウザ上（Storybook / 開発サーバー）での API 通信をフックし、定義したモックハンドラーから安全にレスポンスを返します。
+- **Vitest単体テストへの自動適用**: [src/test/setup.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test/setup.ts) で MSW Mock Server が読み込まれており、外部の API を叩くコンポーネントに対してもモックされたネットワーク環境でテストが実行されます。
+- **Storybookとの統合**: `msw-storybook-addon` の最新の v3.0.0 方式に準拠しており、`.storybook/preview.tsx` の `addons` 配列に `addonMsw()` を指定する形でグローバルに有効化されています。
 
 ---
 
@@ -220,33 +236,42 @@ npm run build-storybook
 my-test-app/
 ├── [public/](file:///Users/katoy/github/study-frontend-test/my-test-app/public)          # 静的アセット配信ディレクトリ
 │   ├── [favicon.svg](file:///Users/katoy/github/study-frontend-test/my-test-app/public/favicon.svg) # サイトファビコン
-│   └── [icons.svg](file:///Users/katoy/github/study-frontend-test/my-test-app/public/icons.svg)   # UI用SVGスプライトアイコン
+│   ├── [icons.svg](file:///Users/katoy/github/study-frontend-test/my-test-app/public/icons.svg)   # UI用SVGスプライトアイコン
+│   └── [mockServiceWorker.js](file:///Users/katoy/github/study-frontend-test/my-test-app/public/mockServiceWorker.js) # MSW サービスワーカーファイル
 ├── [src/](file:///Users/katoy/github/study-frontend-test/my-test-app/src)             # ソースコード
 │   ├── [assets/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/assets)      # アセット（画像・ロゴなど）
 │   │   ├── [hero.png](file:///Users/katoy/github/study-frontend-test/my-test-app/src/assets/hero.png)   # メインのヒーロー画像
 │   │   ├── [react.svg](file:///Users/katoy/github/study-frontend-test/my-test-app/src/assets/react.svg) # React ロゴ SVG
 │   │   └── [vite.svg](file:///Users/katoy/github/study-frontend-test/my-test-app/src/assets/vite.svg)   # Vite ロゴ SVG
+│   ├── [components/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/components)  # 共通UIコンポーネント
+│   │   ├── [UserProfile.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/components/UserProfile.tsx) # API通信を行うユーザープロファイルコンポーネント
+│   │   ├── [UserProfile.test.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/components/UserProfile.test.tsx) # MSWモックAPIを用いた単体テスト
+│   │   └── [UserProfile.stories.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/components/UserProfile.stories.tsx) # コンポーネントストーリー (MSWオーバーライド例含む)
 │   ├── [hooks/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/hooks)        # カスタムフック
 │   │   ├── [useCounter.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/hooks/useCounter.ts) # カウンターロジックのカスタムフック
 │   │   └── [useCounter.test.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/hooks/useCounter.test.ts) # カスタムフックのユニットテスト
-│   ├── [stories/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/stories)      # Storybook コンポーネント & ストーリーファイル
+│   ├── [mocks/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/mocks)        # MSW モック設定ディレクトリ
+│   │   ├── [browser.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/mocks/browser.ts)   # ブラウザ（Storybook等）用ワーカー初期化
+│   │   ├── [handlers.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/mocks/handlers.ts)  # モック API ハンドラーの定義リスト
+│   │   └── [node.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/mocks/node.ts)      # Node (Vitest単体テスト)用サーバー初期化
+│   ├── [stories/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/stories)      # Storybook デモストーリーファイル
 │   │   ├── [Button.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/stories/Button.tsx)       # ボタンコンポーネント本体
-│   │   ├── [Button.stories.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/stories/Button.stories.ts) # ボタンのストーリー定義 (テスト兼)
+│   │   ├── [Button.stories.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/stories/Button.stories.ts) # ボタンのストーリー定義
 │   │   └── ... (Header, Page などのサンプルストーリー群)
 │   ├── [test/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test)          # テスト用設定
-│   │   └── [setup.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test/setup.ts) # テスト共通セットアップ (jest-dom設定など)
+│   │   └── [setup.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test/setup.ts) # テスト共通セットアップ (jest-domおよびMSW設定)
 │   ├── [App.css](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.css)       # Appコンポーネント専用CSS
 │   ├── [App.test.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.test.tsx)  # Appコンポーネントのテストコード
-│   ├── [App.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.tsx)       # メインコンポーネント (カウンターとリンク)
-│   ├── [index.css](file:///Users/katoy/github/study-frontend-test/my-test-app/src/index.css)     # グローバルCSS (共通スタイル、リセット)
-│   └── [main.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/main.tsx)      # エントリポイント (Reactレンダリング開始)
+│   ├── [App.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.tsx)       # メインコンポーネント
+│   ├── [index.css](file:///Users/katoy/github/study-frontend-test/my-test-app/src/index.css)     # グローバルCSS
+│   └── [main.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/main.tsx)      # エントリポイント
 ├── [.storybook/](file:///Users/katoy/github/study-frontend-test/my-test-app/.storybook)      # Storybook の設定フォルダ
-│   ├── [main.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/.storybook/main.ts)       # メイン設定（アドオン、Vite統合など）
-│   └── [preview.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/.storybook/preview.ts)   # レンダリング時の共通設定
+│   ├── [main.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/.storybook/main.ts)       # メイン設定
+│   └── [preview.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/.storybook/preview.tsx) # レンダリング設定 (MSWアドオン統合含む)
 ├── [tests/](file:///Users/katoy/github/study-frontend-test/my-test-app/tests)            # Playwright E2Eテストコード
 │   ├── [app.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/app.spec.ts) # アプリ固有のE2Eテスト
 │   └── [example.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/example.spec.ts) # Playwright公式のE2Eテストサンプル
-├── [biome.json](file:///Users/katoy/github/study-frontend-test/my-test-app/biome.json)        # Biome のルール・動作設定ファイル
+├── [biome.json](file:///Users/katoy/github/study-frontend-test/my-test-app/biome.json)        # Biome 設定ファイル
 ├── [eslint.config.js](file:///Users/katoy/github/study-frontend-test/my-test-app/eslint.config.js)  # ESLint 設定ファイル
 ├── [index.html](file:///Users/katoy/github/study-frontend-test/my-test-app/index.html)        # メイン HTML テンプレート
 ├── [package.json](file:///Users/katoy/github/study-frontend-test/my-test-app/package.json)      # プロジェクト依存関係およびスクリプト定義
@@ -254,6 +279,7 @@ my-test-app/
 ├── [tsconfig.json](file:///Users/katoy/github/study-frontend-test/my-test-app/tsconfig.json)     # TypeScript ルート設定
 ├── [vite.config.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/vite.config.ts)   # Vite 設定
 └── [README.md](file:///Users/katoy/github/study-frontend-test/my-test-app/README.md)        # 本ドキュメント
+```
 ```
 
 ---
@@ -285,6 +311,7 @@ my-test-app/
 | **Vitest**    | ユニットテスト・結合テスト       | カバレッジ確保・バグ防ぐ | **PASS**       |
 | **Playwright**| E2Eテスト (マルチブラウザ対応)   | 複数環境での表示・動作担保| **PASS**       |
 | **Storybook** | コンポーネント単位のテスト実行   | 各UI状態の挙動確認・検証 | **PASS**       |
+| **MSW**       | API通信のモッキング・検証       | テスト・カタログ用API制御| **PASS**       |
 
 ---
 
