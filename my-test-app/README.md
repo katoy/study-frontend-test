@@ -18,6 +18,7 @@ React v19、TypeScript、Vite v8 を使用したモダンなフロントエン�
 - [CI/CD パイプライン](#cicd-パイプライン)
 - [Storybook & TurboSnap](#storybook--turbosnap)
 - [MSW (Mock Service Worker)](#msw-mock-service-worker)
+- [VRT (Visual Regression Testing)](#vrt-visual-regression-testing)
 - [インストール・セットアップ](#インストールセットアップ)
 - [主要コマンド](#主要コマンド)
 - [ディレクトリ構造](#ディレクトリ構造)
@@ -128,10 +129,10 @@ Vite のビルドによって生成される `dist/` ディレクトリの静的
 GitHub Actions を利用した自動検証・自動デプロイフローを導入しています。
 
 1. **デプロイフロー (`deploy.yml`)**
-   - **契機**: `main` ブランクへのプッシュ
+   - **契機**: `main` ブランチへのプッシュ
    - **処理**: 依存関係インストール、Biomeによるコードチェック、単体テスト（Vitest）実行、ビルド、GitHub Pagesへの直接デプロイ。
 2. **E2Eテストフロー (`playwright.yml`)**
-   - **契機**: `main`/`master` ブランクへのプッシュ、およびプルリクエスト作成時
+   - **契機**: `main`/`master` ブランチへのプッシュ、およびプルリクエスト作成時
    - **処理**: Playwrightによるマルチブラウザ（Chromium, Firefox, WebKit）E2Eテストの実行。テスト失敗時はテストレポート（HTML）を GitHub Actions の Artifacts として自動保存（30日間保持）。
 
 ---
@@ -154,6 +155,17 @@ API リクエストをモックし、バックエンドから独立したフロ�
 - **Service Worker によるインターセプト**: ブラウザ上（Storybook / 開発サーバー）での API 通信をフックし、定義したモックハンドラーから安全にレスポンスを返します。
 - **Vitest単体テストへの自動適用**: [src/test/setup.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test/setup.ts) で MSW Mock Server が読み込まれており、外部の API を叩くコンポーネントに対してもモックされたネットワーク環境でテストが実行されます。
 - **Storybookとの統合**: `msw-storybook-addon` の最新の v3.0.0 方式に準拠しており、`.storybook/preview.tsx` の `addons` 配列に `addonMsw()` を指定する形でグローバルに有効化されています。
+
+---
+
+## VRT (Visual Regression Testing)
+
+コンポーネントや画面全体の予期せぬ見た目の変化（表示崩れ等）を検知するために VRT を導入しています。
+
+### 特徴
+- **Playwrightベースのスクリーンショットテスト**: 実際のブラウザ（Chromium, Firefox, WebKit）上で動作させ、基準（正解）画像と現在の描画状態のピクセル差分を比較します。
+- **マルチブラウザ対応**: 各種デバイス解像度やブラウザエンジンの違いによる表示崩れを自動検証します。
+- **コンポーネント単位の比較**: [tests/vrt.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/vrt.spec.ts) にて、ページ全体の検証のほかに特定の要素（カウンターボタンなど）をターゲットにしたテストが定義されています。
 
 ---
 
@@ -219,6 +231,12 @@ npm run test:e2e
 # PlaywrightのインタラクティブUIモードでの実行
 npm run test:e2e:ui
 
+# PlaywrightによるVRTの実行 (基準画像との比較)
+npm run test:vrt
+
+# VRT用基準（正解）画像の更新・再生成
+npm run test:vrt:update
+
 # Storybook 開発サーバーの起動
 npm run storybook
 
@@ -270,7 +288,9 @@ my-test-app/
 │   └── [preview.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/.storybook/preview.tsx) # レンダリング設定 (MSWアドオン統合含む)
 ├── [tests/](file:///Users/katoy/github/study-frontend-test/my-test-app/tests)            # Playwright E2Eテストコード
 │   ├── [app.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/app.spec.ts) # アプリ固有のE2Eテスト
-│   └── [example.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/example.spec.ts) # Playwright公式のE2Eテストサンプル
+│   ├── [example.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/example.spec.ts) # Playwright公式のE2Eテストサンプル
+│   ├── [vrt.spec.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/vrt.spec.ts) # VRTテストコード
+│   └── [vrt.spec.ts-snapshots/](file:///Users/katoy/github/study-frontend-test/my-test-app/tests/vrt.spec.ts-snapshots) # VRT基準画像フォルダ (各ブラウザ用)
 ├── [biome.json](file:///Users/katoy/github/study-frontend-test/my-test-app/biome.json)        # Biome 設定ファイル
 ├── [eslint.config.js](file:///Users/katoy/github/study-frontend-test/my-test-app/eslint.config.js)  # ESLint 設定ファイル
 ├── [index.html](file:///Users/katoy/github/study-frontend-test/my-test-app/index.html)        # メイン HTML テンプレート
@@ -279,7 +299,6 @@ my-test-app/
 ├── [tsconfig.json](file:///Users/katoy/github/study-frontend-test/my-test-app/tsconfig.json)     # TypeScript ルート設定
 ├── [vite.config.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/vite.config.ts)   # Vite 設定
 └── [README.md](file:///Users/katoy/github/study-frontend-test/my-test-app/README.md)        # 本ドキュメント
-```
 ```
 
 ---
@@ -312,6 +331,7 @@ my-test-app/
 | **Playwright**| E2Eテスト (マルチブラウザ対応)   | 複数環境での表示・動作担保| **PASS**       |
 | **Storybook** | コンポーネント単位のテスト実行   | 各UI状態の挙動確認・検証 | **PASS**       |
 | **MSW**       | API通信のモッキング・検証       | テスト・カタログ用API制御| **PASS**       |
+| **VRT (Playwright)** | ビジュアル表示崩れの自動検知 | 複数ブラウザ間の表示担保 | **PASS**       |
 
 ---
 
