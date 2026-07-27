@@ -86,6 +86,8 @@ flowchart TD
 | **React DOM**  | ^19.2.7    | DOM レンダリング                                           |
 | **TypeScript** | ~6.0.2     | 静的型定義                                                 |
 | **Vite**       | ^8.1.1     | ビルドツール・開発サーバー                                 |
+| **Vitest**     | ^4.1.10    | テストランナー・テストフレームワーク                       |
+| **Testing Library** | (設定あり) | ReactコンポーネントおよびDOMの単体テスト                 |
 | **ESLint**     | ^10.6.0    | JavaScript/TypeScript 静的解析                             |
 | **Stylelint**  | ^17.14.1   | CSS 静的解析                                               |
 | **Prettier**   | ^3.9.6     | コードフォーマッター                                       |
@@ -149,6 +151,12 @@ npm run biome:check
 
 # Biome による自動修正
 npm run biome:write
+
+# テストの起動 (ウォッチモード)
+npm run test
+
+# テストの実行 (シングルラン)
+npm run test:run
 ```
 
 ---
@@ -167,7 +175,10 @@ my-test-app/
 │   │   ├── [hero.png](file:///Users/katoy/github/study-frontend-test/my-test-app/src/assets/hero.png)   # メインのヒーロー画像
 │   │   ├── [react.svg](file:///Users/katoy/github/study-frontend-test/my-test-app/src/assets/react.svg) # React ロゴ SVG
 │   │   └── [vite.svg](file:///Users/katoy/github/study-frontend-test/my-test-app/src/assets/vite.svg)   # Vite ロゴ SVG
+│   ├── [test/](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test)          # テスト用設定
+│   │   └── [setup.ts](file:///Users/katoy/github/study-frontend-test/my-test-app/src/test/setup.ts) # テスト共通セットアップ (jest-dom設定など)
 │   ├── [App.css](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.css)       # Appコンポーネント専用CSS
+│   ├── [App.test.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.test.tsx)  # Appコンポーネントのテストコード
 │   ├── [App.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/App.tsx)       # メインコンポーネント (カウンターとリンク)
 │   ├── [index.css](file:///Users/katoy/github/study-frontend-test/my-test-app/src/index.css)     # グローバルCSS (共通スタイル、リセット)
 │   └── [main.tsx](file:///Users/katoy/github/study-frontend-test/my-test-app/src/main.tsx)      # エントリポイント (Reactレンダリング開始)
@@ -206,6 +217,7 @@ my-test-app/
 | **Stylelint** | CSSスタイル整合性チェック        | 警告ゼロ               | **PASS**       |
 | **Prettier**  | コード全体の自動整形フォーマット | 一貫したコードスタイル | **PASS**       |
 | **Biome**     | 高速ルールチェック・自動整形     | 警告ゼロ               | **PASS**       |
+| **Vitest**    | ユニットテスト・結合テスト       | カバレッジ確保・バグ防ぐ | **PASS**       |
 
 ---
 
